@@ -1,5 +1,6 @@
-use crate::WeakHeap;
+use crate::{WeakHeap, WeakHeapPeekMut};
 use rand::{thread_rng, Rng};
+use std::collections::binary_heap::PeekMut;
 use std::collections::BinaryHeap;
 
 #[test]
@@ -306,4 +307,71 @@ fn test_shrink_to_fit() {
     heap.push(3);
     heap.shrink_to_fit();
     assert_eq!(heap.capacity(), 3);
+}
+
+#[test]
+fn test_peek_mut() {
+    let mut heap: WeakHeap<i32> = WeakHeap::new();
+    assert!(heap.peek_mut().is_none());
+
+    heap.push(3);
+    {
+        let mut top = heap.peek_mut().unwrap();
+        *top = 4;
+    }
+    assert_eq!(heap.peek(), Some(&4));
+
+    heap.push(1);
+    heap.push(6);
+    assert_eq!(heap.peek(), Some(&6));
+    {
+        let mut top = heap.peek_mut().unwrap();
+        *top = 0;
+    }
+    assert_eq!(heap.peek(), Some(&4));
+
+    {
+        let top = heap.peek_mut().unwrap();
+        assert_eq!(WeakHeapPeekMut::pop(top), 4);
+    }
+    assert_eq!(heap.peek(), Some(&1));
+
+    // Random tests against BinaryHeap
+    let mut rng = thread_rng();
+
+    for size in 1..=100 {
+        let mut elements: Vec<i64> = Vec::with_capacity(size);
+        for _ in 0..size {
+            elements.push(rng.gen_range(-30..=30));
+        }
+
+        let mut binary_heap: BinaryHeap<i64> = BinaryHeap::from(elements.clone());
+        let mut weak_heap: WeakHeap<i64> = WeakHeap::from(elements);
+
+        for _ in 0..size * 2 {
+            {
+                let new_val: i64 = rng.gen_range(-50..=50);
+                let mut bin_val = binary_heap.peek_mut().unwrap();
+                let mut weak_val = weak_heap.peek_mut().unwrap();
+                *bin_val = new_val;
+                *weak_val = new_val;
+            }
+            assert_eq!(weak_heap.peek(), binary_heap.peek());
+        }
+
+        assert_eq!(
+            weak_heap.clone().into_sorted_vec(),
+            binary_heap.clone().into_sorted_vec()
+        );
+
+        for _ in 0..size {
+            {
+                let bin_val = binary_heap.peek_mut().unwrap();
+                let weak_val = weak_heap.peek_mut().unwrap();
+                assert_eq!(WeakHeapPeekMut::pop(weak_val), PeekMut::pop(bin_val));
+            }
+            assert_eq!(weak_heap.peek(), binary_heap.peek());
+        }
+        assert!(weak_heap.is_empty());
+    }
 }

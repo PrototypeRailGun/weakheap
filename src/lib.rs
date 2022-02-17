@@ -1,12 +1,69 @@
 use core::fmt;
 use core::iter::FromIterator;
 use core::mem::{swap, ManuallyDrop};
+use core::ops::{Deref, DerefMut};
 use core::ptr;
 use std::vec;
 
 pub struct WeakHeap<T> {
     data: Vec<T>,
     bit: Vec<bool>,
+}
+
+/// Structure wrapping a mutable reference to the greatest item on a
+/// `WeakHeap`.
+///
+/// This `struct` is created by the [`peek_mut`] method on [`WeakHeap`]. See
+/// its documentation for more.
+///
+/// [`peek_mut`]: WeakHeap::peek_mut
+pub struct WeakHeapPeekMut<'a, T: 'a + Ord> {
+    heap: &'a mut WeakHeap<T>,
+    sift: bool,
+}
+
+impl<T: Ord + fmt::Debug> fmt::Debug for WeakHeapPeekMut<'_, T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_tuple("WeakHeapPeekMut")
+            .field(&self.heap.data[0])
+            .finish()
+    }
+}
+
+impl<T: Ord> Drop for WeakHeapPeekMut<'_, T> {
+    fn drop(&mut self) {
+        if self.sift {
+            // SAFETY: PeekMut is only instantiated for non-empty heaps.
+            unsafe { self.heap.sift_down(0) };
+        }
+    }
+}
+
+impl<T: Ord> Deref for WeakHeapPeekMut<'_, T> {
+    type Target = T;
+    fn deref(&self) -> &T {
+        debug_assert!(!self.heap.is_empty());
+        // SAFE: PeekMut is only instantiated for non-empty heaps
+        unsafe { self.heap.data.get_unchecked(0) }
+    }
+}
+
+impl<T: Ord> DerefMut for WeakHeapPeekMut<'_, T> {
+    fn deref_mut(&mut self) -> &mut T {
+        debug_assert!(!self.heap.is_empty());
+        self.sift = true;
+        // SAFE: PeekMut is only instantiated for non-empty heaps
+        unsafe { self.heap.data.get_unchecked_mut(0) }
+    }
+}
+
+impl<'a, T: Ord> WeakHeapPeekMut<'a, T> {
+    /// Removes the peeked value from the heap and returns it.
+    pub fn pop(mut this: WeakHeapPeekMut<'a, T>) -> T {
+        let value = this.heap.pop().unwrap();
+        this.sift = false;
+        value
+    }
 }
 
 impl<T: Clone> Clone for WeakHeap<T> {
@@ -94,6 +151,46 @@ impl<T: Ord> WeakHeap<T> {
         WeakHeap {
             data: Vec::with_capacity(capacity),
             bit: Vec::with_capacity(capacity),
+        }
+    }
+
+    /// Returns a mutable reference to the greatest item in the weak heap, or
+    /// `None` if it is empty.
+    ///
+    /// Note: If the `WeakHeapPeekMut` value is leaked, the heap may be in an
+    /// inconsistent state.
+    ///
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use weakheap::WeakHeap;
+    /// let mut heap = WeakHeap::new();
+    /// assert!(heap.peek_mut().is_none());
+    ///
+    /// heap.push(1);
+    /// heap.push(5);
+    /// heap.push(2);
+    /// {
+    ///     let mut val = heap.peek_mut().unwrap();
+    ///     *val = 0;
+    /// }
+    /// assert_eq!(heap.peek(), Some(&2));
+    /// ```
+    ///
+    /// # Time complexity
+    ///
+    /// If the item is modified then the worst case time complexity is *O*(log(*n*)),
+    /// otherwise it's *O*(1).
+    pub fn peek_mut(&mut self) -> Option<WeakHeapPeekMut<'_, T>> {
+        if self.is_empty() {
+            None
+        } else {
+            Some(WeakHeapPeekMut {
+                heap: self,
+                sift: false,
+            })
         }
     }
 
@@ -476,7 +573,7 @@ impl<T> WeakHeap<T> {
 
     /// Consumes the `WeakHeap<T>` and returns the underlying vector Vec<T>
     /// in arbitrary order.
-    /// 
+    ///
     /// The results of `WeakHeap::into_vec()` and `BinaryHeap::into_vec()` are likely to differ.
     ///
     /// # Examples
