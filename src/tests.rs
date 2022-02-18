@@ -375,3 +375,42 @@ fn test_peek_mut() {
         assert!(weak_heap.is_empty());
     }
 }
+
+#[test]
+fn test_pushpop() {
+    let mut heap: WeakHeap<i64> = WeakHeap::new();
+    assert_eq!(heap.pushpop(5), 5);
+    assert_eq!(heap.len(), 0);
+
+    heap.push(3);
+    assert_eq!(heap.pushpop(2), 3);
+    assert_eq!(heap.peek(), Some(&2));
+    assert_eq!(heap.len(), 1);
+
+    assert_eq!(heap.pushpop(4), 4);
+    assert_eq!(heap.peek(), Some(&2));
+    assert_eq!(heap.len(), 1);
+
+    // Random tests against push and pop
+    let mut rng = thread_rng();
+
+    for size in 0..=100 {
+        let mut elements: Vec<i64> = Vec::with_capacity(size);
+        for _ in 0..size {
+            elements.push(rng.gen_range(-30..=30));
+        }
+
+        let mut heap1 = WeakHeap::from(elements); // pushpop
+        let mut heap2 = heap1.clone(); //push and pop
+
+        for _ in 0..size * 2 {
+            let item = rng.gen_range(-50..50);
+            heap2.push(item);
+            assert_eq!(heap1.pushpop(item), heap2.pop().unwrap());
+            assert_eq!(heap1.len(), heap2.len());
+            assert_eq!(heap1.peek(), heap2.peek());
+        }
+
+        assert_eq!(heap1.into_sorted_vec(), heap2.into_sorted_vec());
+    }
+}

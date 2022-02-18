@@ -272,6 +272,49 @@ impl<T: Ord> WeakHeap<T> {
         }
     }
 
+    /// Equivalent to a sequential `push()` and `pop()` calls.
+    ///
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use weakheap::WeakHeap;
+    /// let mut heap = WeakHeap::new();
+    /// assert_eq!(heap.pushpop(5), 5);
+    /// assert!(heap.is_empty());
+    ///
+    /// heap.push(10);
+    /// assert_eq!(heap.pushpop(20), 20);
+    /// assert_eq!(heap.peek(), Some(&10));
+    ///
+    /// assert_eq!(heap.pushpop(5), 10);
+    /// assert_eq!(heap.peek(), Some(&5));
+    /// ```
+    ///
+    /// # Time complexity
+    ///
+    /// If the heap is empty or the element being added
+    /// is larger (or equal) than the current top of the heap,
+    /// then the time complexity will be *O*(1), otherwise *O*(log(*n*)).
+    /// And unlike the sequential call of `push()` and `pop()`, the resizing never happens.
+    pub fn pushpop(&mut self, mut item: T) -> T {
+        if self.len() == 0 {
+            return item;
+        }
+
+        if self.data[0] < item {
+            item
+        } else {
+            swap(&mut item, &mut self.data[0]);
+            // SAFETY: self.len() > 0
+            unsafe {
+                self.sift_down(0);
+            }
+            item
+        }
+    }
+
     /// Consumes the `WeakHeap` and returns a vector in sorted
     /// (ascending) order.
     ///
