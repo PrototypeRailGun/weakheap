@@ -414,3 +414,44 @@ fn test_pushpop() {
         assert_eq!(heap1.into_sorted_vec(), heap2.into_sorted_vec());
     }
 }
+
+#[test]
+fn test_append() {
+    let mut h1: WeakHeap<i64> = WeakHeap::new();
+    let mut h2: WeakHeap<i64> = WeakHeap::new();
+    h1.append(&mut h2);
+    assert_eq!(h1.into_sorted_vec(), vec![]);
+
+    // Random tests against BinaryHeap
+    let mut rng = thread_rng();
+    for size1 in 0..100 {
+        let mut elements1: Vec<i64> = Vec::with_capacity(size1);
+        for _ in 0..size1 {
+            elements1.push(rng.gen_range(-30..=30));
+        }
+        
+        let weak_heap = WeakHeap::from(elements1.clone());
+        let bin_heap = BinaryHeap::from(elements1);
+
+        for size2 in 0..100 {
+            let mut elements2: Vec<i64> = Vec::with_capacity(size2);
+            for _ in 0..size2 {
+                elements2.push(rng.gen_range(-30..=30));
+            }
+
+            let mut wh2 = WeakHeap::from(elements2.clone());
+            let mut bh2 = BinaryHeap::from(elements2);
+
+            let mut wh1 = weak_heap.clone();
+            let mut bh1 = bin_heap.clone();
+
+            wh1.append(&mut wh2);
+            bh1.append(&mut bh2);
+
+            assert_eq!(wh1.peek(), bh1.peek());
+            assert_eq!(wh1.len(), bh1.len());
+            assert!(wh2.is_empty());
+            assert_eq!(wh1.into_sorted_vec(), bh1.into_sorted_vec());
+        }
+    }
+}

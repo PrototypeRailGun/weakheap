@@ -474,6 +474,51 @@ impl<T: Ord> WeakHeap<T> {
             }
         }
     }
+
+    /// Rebuild assuming data[0..start] is still a proper heap.
+    fn rebuild_tail(&mut self, start: usize) {
+        if start == self.len() {
+            return;
+        }
+        
+        for i in start..self.len() {
+            // SAFETY: self.len() > 1 and index `i` is always less than self.len();
+            unsafe { self.sift_up_push(0, i); }
+        }
+    }
+
+    /// Moves all the elements of `other` into `self`, leaving `other` empty.
+    ///
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use weakheap::WeakHeap;
+    ///
+    /// let v = vec![-10, 1, 2, 3, 3];
+    /// let mut a = WeakHeap::from(v);
+    ///
+    /// let v = vec![-20, 5, 43];
+    /// let mut b = WeakHeap::from(v);
+    ///
+    /// a.append(&mut b);
+    ///
+    /// assert_eq!(a.into_sorted_vec(), [-20, -10, 1, 2, 3, 3, 5, 43]);
+    /// assert!(b.is_empty());
+    /// ```
+    pub fn append(&mut self, other: &mut Self) {
+        if self.len() < other.len() {
+            swap(self, other);
+        }
+        
+        let start = self.data.len();
+
+        self.data.append(&mut other.data);
+        self.bit.append(&mut other.bit);
+
+        self.rebuild_tail(start);
+    }
 }
 
 impl<T> WeakHeap<T> {
