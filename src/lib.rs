@@ -465,7 +465,7 @@ impl<T: Ord> WeakHeap<T> {
         self.sift_down_range(pos, len);
     }
 
-    // Building a heap.
+    // Building a heap. Time complexity: O(self.len()).
     fn rebuild(&mut self) {
         for n in (1..self.len()).rev() {
             // SAFETY: n starts from self.len()-1 and goes down to 1.
@@ -480,10 +480,12 @@ impl<T: Ord> WeakHeap<T> {
         if start == self.len() {
             return;
         }
-        
+
         for i in start..self.len() {
             // SAFETY: self.len() > 1 and index `i` is always less than self.len();
-            unsafe { self.sift_up_push(0, i); }
+            unsafe {
+                self.sift_up_push(0, i);
+            }
         }
     }
 
@@ -507,11 +509,16 @@ impl<T: Ord> WeakHeap<T> {
     /// assert_eq!(a.into_sorted_vec(), [-20, -10, 1, 2, 3, 3, 5, 43]);
     /// assert!(b.is_empty());
     /// ```
+    ///
+    /// # Time complexity
+    ///
+    /// Operation can be done in *O*(*nlog(n)*) in worst case, but
+    /// average time complexity is *O*(*n*), where *n* = self.len() + other.len().
     pub fn append(&mut self, other: &mut Self) {
         if self.len() < other.len() {
             swap(self, other);
         }
-        
+
         let start = self.data.len();
 
         self.data.append(&mut other.data);

@@ -429,7 +429,7 @@ fn test_append() {
         for _ in 0..size1 {
             elements1.push(rng.gen_range(-30..=30));
         }
-        
+
         let weak_heap = WeakHeap::from(elements1.clone());
         let bin_heap = BinaryHeap::from(elements1);
 
