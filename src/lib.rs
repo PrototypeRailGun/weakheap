@@ -526,6 +526,37 @@ impl<T: Ord> WeakHeap<T> {
 
         self.rebuild_tail(start);
     }
+
+    /// Moves all the elements of vector `other` into `self`, leaving `other` empty.
+    ///
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use weakheap::WeakHeap;
+    ///
+    /// let mut a = WeakHeap::from(vec![-10, 1, 2, 3, 3]);
+    ///
+    /// let mut v = vec![-20, 5, 43];
+    /// a.append_vec(&mut v);
+    ///
+    /// assert_eq!(a.into_sorted_vec(), [-20, -10, 1, 2, 3, 3, 5, 43]);
+    /// assert!(v.is_empty());
+    /// ```
+    ///
+    /// # Time complexity
+    ///
+    /// Operation can be done in *O*(*nlog(n)*) in worst case, but
+    /// average time complexity is *O*(*n*), where *n* = self.len() + other.len().
+    pub fn append_vec(&mut self, other: &mut Vec<T>) {
+        let start = self.len();
+
+        self.bit.append(&mut vec![false; other.len()]);
+        self.data.append(other);
+
+        self.rebuild_tail(start);
+    }
 }
 
 impl<T> WeakHeap<T> {

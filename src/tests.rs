@@ -494,3 +494,39 @@ fn test_extend() {
 
     assert_eq!(weak_heap.into_sorted_vec(), bin_heap.into_sorted_vec());
 }
+
+#[test]
+fn append_vec() {
+    let mut heap = WeakHeap::new();
+    heap.append_vec(&mut vec![]);
+    assert_eq!(heap.len(), 0);
+
+    heap.append_vec(&mut vec![3, 8, 5]);
+    assert_eq!(heap.into_sorted_vec(), vec![3, 5, 8]);
+
+    // Random tests
+    let mut rng = thread_rng();
+    let mut weak_heap: WeakHeap<i64> = WeakHeap::new();
+    let mut all_elements: Vec<i64> = Vec::with_capacity(5050);
+
+    let mut len = 0;
+    for size in 0..=100 {
+        len += size;
+
+        let mut elements: Vec<i64> = Vec::with_capacity(size);
+        for _ in 0..size {
+            elements.push(rng.gen_range(-30..=30));
+        }
+
+        all_elements.append(&mut elements.clone());
+        all_elements.sort_unstable();
+
+        weak_heap.append_vec(&mut elements);
+
+        assert_eq!(weak_heap.len(), len);
+        assert_eq!(weak_heap.clone().into_sorted_vec(), all_elements);
+        assert!(elements.is_empty());
+    }
+
+    assert_eq!(weak_heap.into_sorted_vec(), all_elements);
+}
