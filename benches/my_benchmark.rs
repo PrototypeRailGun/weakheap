@@ -4,16 +4,10 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use weakheap::WeakHeap;
 //use std::collections::BinaryHeap;
 
-fn basics(elements: Vec<String>) -> Vec<String> {
-    let mut heap: WeakHeap<String> = WeakHeap::with_capacity(elements.len());
-    for x in elements.clone() {
-        heap.push(x);
-    }
-    for x in elements {
-        heap.pushpop(x);
-    }
-
-    heap.into_sorted_vec()
+fn basics(elements: Vec<String>) {
+    let mut heap1: WeakHeap<String> = WeakHeap::from(elements.clone());
+    let mut heap2: WeakHeap<String> = WeakHeap::from(elements.clone());
+    heap1.append(&mut heap2);
 }
 
 fn criterion_benchmark(c: &mut Criterion) {

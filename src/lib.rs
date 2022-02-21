@@ -897,5 +897,26 @@ impl<T: Ord> FromIterator<T> for WeakHeap<T> {
     }
 }
 
+impl<T: Ord> Extend<T> for WeakHeap<T> {
+    /// Extend WeakHeap with elements from the iterator.
+    ///
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use weakheap::WeakHeap;
+    ///
+    /// let mut heap = WeakHeap::new();
+    /// heap.extend(vec![7, 1, 0, 4, 5, 3]);
+    /// assert_eq!(heap.into_sorted_vec(), [0, 1, 3, 4, 5, 7]);
+    /// ```
+    fn extend<I: IntoIterator<Item = T>>(&mut self, iter: I) {
+        for x in iter {
+            self.push(x);
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests;

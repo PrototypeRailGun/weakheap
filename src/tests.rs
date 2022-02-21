@@ -455,3 +455,42 @@ fn test_append() {
         }
     }
 }
+
+#[test]
+fn test_extend() {
+    let mut heap: WeakHeap<i64> = WeakHeap::new();
+
+    heap.extend(vec![]);
+    assert_eq!(heap.len(), 0);
+
+    heap.extend([0]);
+    assert_eq!(heap.len(), 1);
+
+    heap.extend(vec![7, 9, 2, 1].into_iter());
+    assert_eq!(heap.into_sorted_vec(), vec![0, 1, 2, 7, 9]);
+
+    // Random tests against BinaryHeap
+    let mut rng = thread_rng();
+
+    let mut weak_heap = WeakHeap::new();
+    let mut bin_heap = BinaryHeap::new();
+
+    for size in 0..100 {
+        let mut elements: Vec<i64> = Vec::with_capacity(size);
+        for _ in 0..size {
+            elements.push(rng.gen_range(-30..=30));
+        }
+
+        weak_heap.extend(elements.clone());
+        bin_heap.extend(elements);
+
+        assert_eq!(weak_heap.len(), bin_heap.len());
+        assert_eq!(weak_heap.peek(), bin_heap.peek());
+        assert_eq!(
+            weak_heap.clone().into_sorted_vec(),
+            bin_heap.clone().into_sorted_vec()
+        );
+    }
+
+    assert_eq!(weak_heap.into_sorted_vec(), bin_heap.into_sorted_vec());
+}
