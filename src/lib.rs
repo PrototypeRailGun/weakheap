@@ -1,5 +1,5 @@
 use std::fmt;
-use std::iter::FromIterator;
+use std::iter::{FromIterator, FusedIterator};
 use std::mem::{swap, ManuallyDrop};
 use std::ops::{Deref, DerefMut};
 use std::ptr;
@@ -560,6 +560,28 @@ impl<T: Ord> WeakHeap<T> {
 }
 
 impl<T> WeakHeap<T> {
+    /// Returns an iterator visiting all values in the underlying vector, in
+    /// arbitrary order.
+    ///
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use weakheap::WeakHeap;
+    /// let heap = WeakHeap::from(vec![1, 2, 3, 4]);
+    ///
+    /// // Print 1, 2, 3, 4 in arbitrary order
+    /// for x in heap.iter() {
+    ///     println!("{}", x);
+    /// }
+    /// 
+    /// assert_eq!(heap.into_sorted_vec(), vec![1, 2, 3, 4]);
+    /// ```
+    pub fn iter(&self) -> WeakHeapIter<'_, T> {
+        WeakHeapIter { iter: self.data.iter() }
+    }
+
     /// Returns the greatest item in the weak heap, or `None` if it is empty.
     ///
     /// # Examples
@@ -975,6 +997,45 @@ impl<T> IntoIterator for WeakHeap<T> {
         self.data.into_iter()
     }
 }
+
+#[derive(Clone)]
+pub struct WeakHeapIter<'a, T: 'a> {
+    iter: std::slice::Iter<'a, T>,
+}
+
+impl<T: fmt::Debug> fmt::Debug for WeakHeapIter<'_, T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_tuple("WeakHeapIter").field(&self.iter.as_slice()).finish()
+    }
+}
+
+impl<'a, T> Iterator for WeakHeapIter<'a, T> {
+    type Item = &'a T;
+
+    #[inline]
+    fn next(&mut self) -> Option<&'a T> {
+        self.iter.next()
+    }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.iter.size_hint()
+    }
+
+    #[inline]
+    fn last(self) -> Option<&'a T> {
+        self.iter.last()
+    }
+}
+
+impl<'a, T> DoubleEndedIterator for WeakHeapIter<'a, T> {
+    #[inline]
+    fn next_back(&mut self) -> Option<&'a T> {
+        self.iter.next_back()
+    }
+}
+
+impl<T> FusedIterator for WeakHeapIter<'_, T> {}
 
 #[cfg(test)]
 mod tests;

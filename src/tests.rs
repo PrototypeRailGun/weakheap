@@ -554,3 +554,39 @@ fn test_into_iter() {
         assert_eq!(h1.into_sorted_vec(), elements);
     }
 }
+
+#[test]
+fn test_iter() {
+    let heap: WeakHeap<i32> = WeakHeap::new();
+    assert_eq!(heap.into_iter().next(), None);
+
+    let heap = WeakHeap::from(vec![3, 8]);
+    let iter = heap.iter();
+
+    // Clone
+    let data: Vec<&i32> = iter.clone().collect();
+    assert_eq!(data, vec![&8, &3]);
+    // Size hint
+    assert_eq!(iter.size_hint(), (2, Some(2)));
+    // Debug
+    assert_eq!(format!("{:?}", iter), "WeakHeapIter([8, 3])");
+    // Size hint
+    assert_eq!(iter.size_hint(), (2, Some(2)));
+    // Last
+    assert_eq!(iter.last(), Some(&3));
+
+    // Test Iterator for WeakHeapIter
+    let mut rng = rand::thread_rng();
+    for size in 0..=50 {
+        let mut elements: Vec<i64> = Vec::with_capacity(size);
+        for _ in 0..size {
+            elements.push(rng.gen_range(-30..=30));
+        }
+
+        let heap = WeakHeap::from(elements);
+        let mut content: Vec<i64> = heap.iter().map(|x| *x).collect();
+        content.sort();
+        
+        assert_eq!(content, heap.into_sorted_vec());
+    }
+}
