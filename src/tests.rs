@@ -530,3 +530,27 @@ fn append_vec() {
 
     assert_eq!(weak_heap.into_sorted_vec(), all_elements);
 }
+
+#[test]
+fn test_into_iter() {
+    let heap: WeakHeap<i32> = WeakHeap::new();
+    assert_eq!(heap.into_iter().next(), None);
+
+    let heap = WeakHeap::from(vec![3, 8, 5]);
+    let mut data: Vec<i32> = heap.into_iter().collect();
+    data.sort();
+    assert_eq!(data, vec![3, 5, 8]);
+
+    // Random tests
+    let mut rng = rand::thread_rng();
+    for size in 0..=100 {
+        let mut elements: Vec<i64> = Vec::with_capacity(size);
+        for _ in 0..size {
+            elements.push(rng.gen_range(-30..=30));
+        }
+
+        let h1 = WeakHeap::from(elements.clone());
+        elements.sort();
+        assert_eq!(h1.into_sorted_vec(), elements);
+    }
+}

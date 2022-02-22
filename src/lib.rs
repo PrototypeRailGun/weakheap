@@ -1,9 +1,9 @@
-use core::fmt;
-use core::iter::FromIterator;
-use core::mem::{swap, ManuallyDrop};
-use core::ops::{Deref, DerefMut};
-use core::ptr;
-use std::vec;
+use std::fmt;
+use std::iter::FromIterator;
+use std::mem::{swap, ManuallyDrop};
+use std::ops::{Deref, DerefMut};
+use std::ptr;
+use std::vec::IntoIter;
 
 pub struct WeakHeap<T> {
     data: Vec<T>,
@@ -946,6 +946,33 @@ impl<T: Ord> Extend<T> for WeakHeap<T> {
         for x in iter {
             self.push(x);
         }
+    }
+}
+
+impl<T> IntoIterator for WeakHeap<T> {
+    type Item = T;
+    type IntoIter = IntoIter<T>;
+
+    /// Creates a consuming iterator, that is, one that moves each value out of
+    /// the weak heap in arbitrary order. The weak heap cannot be used
+    /// after calling this.
+    ///
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use weakheap::WeakHeap;
+    /// let heap = WeakHeap::from(vec![1, 2, 3, 4]);
+    ///
+    /// // Print 1, 2, 3, 4 in arbitrary order
+    /// for x in heap.into_iter() {
+    ///     // x has type i32, not &i32
+    ///     println!("{}", x);
+    /// }
+    /// ```
+    fn into_iter(self) -> IntoIter<T> {
+        self.data.into_iter()
     }
 }
 
