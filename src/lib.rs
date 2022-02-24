@@ -578,8 +578,8 @@ impl<T> WeakHeap<T> {
     /// 
     /// assert_eq!(heap.into_sorted_vec(), vec![1, 2, 3, 4]);
     /// ```
-    pub fn iter(&self) -> WeakHeapIter<'_, T> {
-        WeakHeapIter { iter: self.data.iter() }
+    pub fn iter(&self) -> Iter<'_, T> {
+        Iter { iter: self.data.iter() }
     }
 
     /// Returns the greatest item in the weak heap, or `None` if it is empty.
@@ -1044,17 +1044,17 @@ impl<T> IntoIterator for WeakHeap<T> {
 }
 
 #[derive(Clone)]
-pub struct WeakHeapIter<'a, T: 'a> {
+pub struct Iter<'a, T: 'a> {
     iter: std::slice::Iter<'a, T>,
 }
 
-impl<T: fmt::Debug> fmt::Debug for WeakHeapIter<'_, T> {
+impl<T: fmt::Debug> fmt::Debug for Iter<'_, T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_tuple("WeakHeapIter").field(&self.iter.as_slice()).finish()
+        f.debug_tuple("Iter").field(&self.iter.as_slice()).finish()
     }
 }
 
-impl<'a, T> Iterator for WeakHeapIter<'a, T> {
+impl<'a, T> Iterator for Iter<'a, T> {
     type Item = &'a T;
 
     #[inline]
@@ -1073,14 +1073,14 @@ impl<'a, T> Iterator for WeakHeapIter<'a, T> {
     }
 }
 
-impl<'a, T> DoubleEndedIterator for WeakHeapIter<'a, T> {
+impl<'a, T> DoubleEndedIterator for Iter<'a, T> {
     #[inline]
     fn next_back(&mut self) -> Option<&'a T> {
         self.iter.next_back()
     }
 }
 
-impl<T> FusedIterator for WeakHeapIter<'_, T> {}
+impl<T> FusedIterator for Iter<'_, T> {}
 
 #[derive(Debug)]
 pub struct Drain<'a, T: 'a> {

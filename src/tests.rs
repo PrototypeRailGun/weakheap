@@ -569,7 +569,7 @@ fn test_iter() {
     // Size hint
     assert_eq!(iter.size_hint(), (2, Some(2)));
     // Debug
-    assert_eq!(format!("{:?}", iter), "WeakHeapIter([8, 3])");
+    assert_eq!(format!("{:?}", iter), "Iter([8, 3])");
     // Size hint
     assert_eq!(iter.size_hint(), (2, Some(2)));
     // Last
