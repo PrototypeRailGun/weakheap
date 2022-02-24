@@ -590,3 +590,25 @@ fn test_iter() {
         assert_eq!(content, heap.into_sorted_vec());
     }
 }
+
+#[test]
+fn test_drain() {
+    let mut rng = rand::thread_rng();
+    for size in 0..=20 {
+        let mut elements: Vec<i64> = Vec::with_capacity(size);
+        for _ in 0..size {
+            elements.push(rng.gen_range(-30..=30));
+        }
+
+        let mut heap = WeakHeap::from(elements.clone());
+        assert_eq!(heap.len(), size);
+
+        let mut content: Vec<i64> = heap.drain().collect();
+        assert!(heap.is_empty());
+
+        content.sort();
+        elements.sort();
+        
+        assert_eq!(content, elements);
+    }
+}

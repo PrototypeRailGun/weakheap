@@ -782,6 +782,31 @@ impl<T> WeakHeap<T> {
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
+
+    /// Clears the weak heap, returning an iterator over the removed elements.
+    ///
+    /// The elements are removed in arbitrary order.
+    ///
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use weakheap::WeakHeap;
+    /// let mut heap = WeakHeap::from(vec![1, 3]);
+    ///
+    /// assert!(!heap.is_empty());
+    ///
+    /// for x in heap.drain() {
+    ///     println!("{}", x);
+    /// }
+    ///
+    /// assert!(heap.is_empty());
+    /// ```
+    #[inline]
+    pub fn drain(&mut self) -> Drain<'_, T> {
+        Drain { iter: self.data.drain(..) }
+    }
 }
 
 /// Hole represents a hole in a slice i.e., an index without valid value
@@ -1036,6 +1061,40 @@ impl<'a, T> DoubleEndedIterator for WeakHeapIter<'a, T> {
 }
 
 impl<T> FusedIterator for WeakHeapIter<'_, T> {}
+
+#[derive(Debug)]
+pub struct Drain<'a, T: 'a> {
+    iter: std::vec::Drain<'a, T>,
+}
+
+/// A draining iterator over the elements of a `WeakHeap`.
+///
+/// This `struct` is created by [`WeakHeap::drain()`]. See its
+/// documentation for more.
+///
+/// [`drain`]: WeakHeap::drain
+impl<T> Iterator for Drain<'_, T> {
+    type Item = T;
+
+    #[inline]
+    fn next(&mut self) -> Option<T> {
+        self.iter.next()
+    }
+
+    #[inline]
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.iter.size_hint()
+    }
+}
+
+impl<T> DoubleEndedIterator for Drain<'_, T> {
+    #[inline]
+    fn next_back(&mut self) -> Option<T> {
+        self.iter.next_back()
+    }
+}
+
+impl<T> FusedIterator for Drain<'_, T> {}
 
 #[cfg(test)]
 mod tests;
