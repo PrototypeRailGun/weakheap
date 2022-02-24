@@ -807,6 +807,26 @@ impl<T> WeakHeap<T> {
     pub fn drain(&mut self) -> Drain<'_, T> {
         Drain { iter: self.data.drain(..) }
     }
+
+    /// Drops all items from the weak heap.
+    ///
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use weakheap::WeakHeap;
+    /// let mut heap = WeakHeap::from(vec![1, 3]);
+    ///
+    /// assert!(!heap.is_empty());
+    ///
+    /// heap.clear();
+    ///
+    /// assert!(heap.is_empty());
+    /// ```
+    pub fn clear(&mut self) {
+        self.drain();
+    }
 }
 
 /// Hole represents a hole in a slice i.e., an index without valid value

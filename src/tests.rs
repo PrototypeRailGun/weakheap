@@ -612,3 +612,19 @@ fn test_drain() {
         assert_eq!(content, elements);
     }
 }
+
+#[test]
+fn test_clear() {
+    let mut rng = rand::thread_rng();
+    for size in 0..=20 {
+        let mut elements: Vec<i64> = Vec::with_capacity(size);
+        for _ in 0..size {
+            elements.push(rng.gen_range(-30..=30));
+        }
+
+        let mut heap = WeakHeap::from(elements);
+        assert_eq!(heap.len(), size);
+        heap.clear();
+        assert!(heap.is_empty())
+    }
+}
