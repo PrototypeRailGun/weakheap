@@ -460,10 +460,10 @@ fn test_append() {
 fn test_extend() {
     let mut heap: WeakHeap<i64> = WeakHeap::new();
 
-    heap.extend(vec![]);
-    assert_eq!(heap.len(), 0);
-
     heap.extend([0]);
+    assert_eq!(heap.len(), 1);
+
+    heap.extend(Vec::<i64>::new());
     assert_eq!(heap.len(), 1);
 
     heap.extend(vec![7, 9, 2, 1].into_iter());
@@ -682,4 +682,19 @@ fn test_into_iter_ref() {
 
         assert_eq!(content, heap.into_sorted_vec());
     }
+}
+
+#[test]
+fn test_extend_ref() {
+    let mut heap: WeakHeap<i64> = WeakHeap::new();
+
+    heap.extend([&0]);
+    assert_eq!(heap.len(), 1);
+
+    heap.extend(Vec::<i64>::new());
+    assert_eq!(heap.len(), 1);
+
+    heap.extend(vec![&7, &9, &2, &1].into_iter());
+    heap.extend(vec![&4, &3, &6, &5]);
+    assert_eq!(heap.into_sorted_vec(), vec![0, 1, 2, 3, 4, 5, 6, 7, 9]);
 }

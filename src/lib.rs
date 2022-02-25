@@ -1117,6 +1117,12 @@ impl<T: Ord> Extend<T> for WeakHeap<T> {
     }
 }
 
+impl<'a, T: 'a + Ord + Copy> Extend<&'a T> for WeakHeap<T> {
+    fn extend<I: IntoIterator<Item = &'a T>>(&mut self, iter: I) {
+        self.extend(iter.into_iter().cloned());
+    }
+}
+
 impl<T> IntoIterator for WeakHeap<T> {
     type Item = T;
     type IntoIter = IntoIter<T>;
