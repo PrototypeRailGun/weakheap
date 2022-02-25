@@ -5,6 +5,102 @@ use std::ops::{Deref, DerefMut};
 use std::ptr;
 use std::vec::IntoIter;
 
+/// A priority queue implemented with a weak heap.
+///
+/// This will be a max-heap.
+///
+/// # Examples
+///
+/// ```
+/// use weakheap::WeakHeap;
+///
+/// // Type inference lets us omit an explicit type signature (which
+/// // would be `WeakHeap<i32>` in this example).
+/// let mut heap = WeakHeap::new();
+///
+/// // We can use peek to look at the next item in the heap. In this case,
+/// // there's no items in there yet so we get None.
+/// assert_eq!(heap.peek(), None);
+///
+/// // Let's add some scores...
+/// heap.push(1);
+/// heap.push(5);
+/// heap.push(2);
+///
+/// // Now peek shows the most important item in the heap.
+/// assert_eq!(heap.peek(), Some(&5));
+///
+/// // We can check the length of a heap.
+/// assert_eq!(heap.len(), 3);
+///
+/// // We can iterate over the items in the heap, although they are returned in
+/// // a random order.
+/// for x in heap.iter() {
+///     println!("{}", x);
+/// }
+///
+/// // If we instead pop these scores, they should come back in order.
+/// assert_eq!(heap.pop(), Some(5));
+/// assert_eq!(heap.pop(), Some(2));
+/// assert_eq!(heap.pop(), Some(1));
+/// assert_eq!(heap.pop(), None);
+///
+/// // We can clear the heap of any remaining items.
+/// heap.clear();
+///
+/// // The heap should now be empty.
+/// assert!(heap.is_empty())
+/// ```
+///
+/// A `WeakHeap` with a known list of items can be initialized from an array:
+///
+/// ```
+/// use weakheap::WeakHeap;
+///
+/// let heap = WeakHeap::from([1, 5, 2]);
+/// ```
+///
+/// ## Min-heap
+///
+/// Either [`core::cmp::Reverse`] or a custom [`Ord`] implementation can be used to
+/// make `WeakHeap` a min-heap. This makes `heap.pop()` return the smallest
+/// value instead of the greatest one.
+///
+/// ```
+/// use weakheap::WeakHeap;
+/// use std::cmp::Reverse;
+///
+/// let mut heap = WeakHeap::new();
+///
+/// // Wrap values in `Reverse`
+/// heap.push(Reverse(1));
+/// heap.push(Reverse(5));
+/// heap.push(Reverse(2));
+///
+/// // If we pop these scores now, they should come back in the reverse order.
+/// assert_eq!(heap.pop(), Some(Reverse(1)));
+/// assert_eq!(heap.pop(), Some(Reverse(2)));
+/// assert_eq!(heap.pop(), Some(Reverse(5)));
+/// assert_eq!(heap.pop(), None);
+/// ```
+///
+/// # Time complexity
+///
+/// | [push]  | [pop]         | [peek]/[peek\_mut] |
+/// |---------|---------------|--------------------|
+/// | *O*(1)~ | *O*(log(*n*)) | *O*(1)             |
+///
+/// The value for `push` is an expected cost; the method documentation gives a
+/// more detailed analysis.
+///
+/// [`core::cmp::Reverse`]: core::cmp::Reverse
+/// [`Ord`]: core::cmp::Ord
+/// [`Cell`]: core::cell::Cell
+/// [`RefCell`]: core::cell::RefCell
+/// [push]: WeakHeap::push
+/// [pop]: WeakHeap::pop
+/// [peek]: WeakHeap::peek
+/// [peek\_mut]: WeakHeap::peek_mut
 pub struct WeakHeap<T> {
     data: Vec<T>,
     bit: Vec<bool>,
