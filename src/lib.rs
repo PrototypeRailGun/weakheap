@@ -1144,6 +1144,34 @@ impl<T> IntoIterator for WeakHeap<T> {
     }
 }
 
+impl<'a, T> IntoIterator for &'a WeakHeap<T> {
+    type Item = &'a T;
+    type IntoIter = Iter<'a, T>;
+
+    /// Returns an iterator visiting all values in the underlying vector, in
+    /// arbitrary order.
+    ///
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use weakheap::WeakHeap;
+    /// let heap = WeakHeap::from(vec![1, 2, 3, 4]);
+    ///
+    /// // Print 1, 2, 3, 4 in arbitrary order
+    /// for x in &heap {
+    ///     // x has type &i32
+    ///     println!("{}", x);
+    /// }
+    ///
+    /// assert_eq!(heap.into_sorted_vec(), vec![1, 2, 3, 4]);
+    /// ```
+    fn into_iter(self) -> Iter<'a, T> {
+        self.iter()
+    }
+}
+
 #[derive(Clone)]
 pub struct Iter<'a, T: 'a> {
     iter: std::slice::Iter<'a, T>,
