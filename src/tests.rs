@@ -586,7 +586,7 @@ fn test_iter() {
         let heap = WeakHeap::from(elements);
         let mut content: Vec<i64> = heap.iter().map(|x| *x).collect();
         content.sort();
-        
+
         assert_eq!(content, heap.into_sorted_vec());
     }
 }
@@ -608,7 +608,7 @@ fn test_drain() {
 
         content.sort();
         elements.sort();
-        
+
         assert_eq!(content, elements);
     }
 }
@@ -625,6 +625,16 @@ fn test_clear() {
         let mut heap = WeakHeap::from(elements);
         assert_eq!(heap.len(), size);
         heap.clear();
-        assert!(heap.is_empty())
+        assert!(heap.is_empty());
+
+        let mut data = Vec::with_capacity(size);
+        for _ in 0..size {
+            let x = rng.gen_range(-30..=30);
+            data.push(x);
+            heap.push(x);
+        }
+
+        data.sort();
+        assert_eq!(heap.into_sorted_vec(), data);
     }
 }

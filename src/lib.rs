@@ -575,11 +575,13 @@ impl<T> WeakHeap<T> {
     /// for x in heap.iter() {
     ///     println!("{}", x);
     /// }
-    /// 
+    ///
     /// assert_eq!(heap.into_sorted_vec(), vec![1, 2, 3, 4]);
     /// ```
     pub fn iter(&self) -> Iter<'_, T> {
-        Iter { iter: self.data.iter() }
+        Iter {
+            iter: self.data.iter(),
+        }
     }
 
     /// Returns the greatest item in the weak heap, or `None` if it is empty.
@@ -805,7 +807,10 @@ impl<T> WeakHeap<T> {
     /// ```
     #[inline]
     pub fn drain(&mut self) -> Drain<'_, T> {
-        Drain { iter: self.data.drain(..) }
+        self.bit.clear();
+        Drain {
+            iter: self.data.drain(..),
+        }
     }
 
     /// Drops all items from the weak heap.
