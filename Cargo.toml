@@ -1,9 +1,19 @@
 [package]
 name = "weakheap"
 version = "0.1.0"
+authors = ["PrototypeRailGun"]
+license = "MIT"
 edition = "2021"
+readme = "README.md"
+description="Weak Heap data structure implementation in Rust"
+homepage="https://github.com/PrototypeRailGun/weakheap"
+repository="https://github.com/PrototypeRailGun/weakheap"
+keywords = ["heap", "weakheap", "sorting"]
+categories = ["data structures"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "weakheap"
+bench = false
 
 [dependencies]
 
