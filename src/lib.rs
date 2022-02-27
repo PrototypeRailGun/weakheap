@@ -504,7 +504,7 @@ impl<T: Ord> WeakHeap<T> {
             ancestor /= 2;
         }
 
-        // SAFETY: `start <= ancestor < pos < self.len()`
+        // SAFETY: `0 <= ancestor < pos < self.len()`
         if self.data.get_unchecked(ancestor) < self.data.get_unchecked(pos) {
             // The pos element has both children.
             if 2 * pos - 1 < len {
