@@ -82,6 +82,6 @@ The `input` axis shows the number of rows used in this bench. The `Append' opera
 ![Typing SVG](/benches/reports/append/lines.svg)
 ![Typing SVG](/benches/reports/sorting/lines.svg)
 
-As can be seen from the graphs presented, a weak heap works faster than a binary one when the elements are strings, however, the `quicksort` algorithm, presented in `Rust` by the `Vec::sort_unstable` method, copes best with sorting.
+As can be seen from the graphs presented, a weak heap works faster than a binary one when the elements are strings, however, the `quicksort` algorithm, presented in `Rust` by the `Vec::sort_unstable` method, copes best with sorting. As the complexity of comparing objects increases, the gain from using a weak heap will increase too.
 
 If you have any comments or suggestions, or you suddenly found an error, please start a new issue or pool request.
