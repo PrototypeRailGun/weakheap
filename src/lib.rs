@@ -1,9 +1,33 @@
+//! A priority queue implemented with a weak heap.
+//!
+//! Insertion and popping the largest element have *O*(log(*n*)) time complexity.
+//! Checking the largest element is *O*(1). Converting a vector to a weak heap
+//! can be done in-place, and has *O*(*n*) complexity. A weak heap can also be
+//! converted to a sorted vector in-place, allowing it to be used for an *O*(*n* * log(*n*))
+//! in-place weak-heapsort.
+//!
+//! The main purpose of using a weak heap is to minimize the number of comparisons
+//! required for `push` and `pop` operations or sorting, which is why it is especially
+//! useful in cases where comparing elements is an expensive operation, for example, string collation.
+//! For the classical comparison of numbers, it is still preferable to use a standard binary heap,
+//! since operations with a weak heap require additional numerical operations compared
+//! to a conventional binary heap.
+//!
+//! This create presents an implementation of the weak heap - `WeakHeap`, which has an identical interface
+//! with [`BinaryHeap`]
+//! from `std::collections`, and at the same time it has several new useful methods.
+//!
+//! # Read about weak heap:
+//! * [Wikipedia](https://en.wikipedia.org/wiki/Weak_heap)
+//! * [The weak-heap data structure: Variants and applications](https://www.sciencedirect.com/science/article/pii/S1570866712000792)
+//!
+//! [`BinaryHeap`]: std::collections::BinaryHeap
+//!
 use std::fmt;
 use std::iter::{FromIterator, FusedIterator};
 use std::mem::{swap, ManuallyDrop};
 use std::ops::{Deref, DerefMut};
 use std::ptr;
-use std::vec::IntoIter;
 
 /// A priority queue implemented with a weak heap.
 ///
@@ -84,11 +108,20 @@ use std::vec::IntoIter;
 /// assert_eq!(heap.pop(), None);
 /// ```
 ///
+/// ## Sorting
+///
+/// ```
+/// use weakheap::WeakHeap;
+///
+/// let heap = WeakHeap::from([5, 3, 1, 7]);
+/// assert_eq!(heap.into_sorted_vec(), vec![1, 3, 5, 7]);
+/// ```
+///
 /// # Time complexity
 ///
-/// | [push]  | [pop]         | [peek]/[peek\_mut] |
-/// |---------|---------------|--------------------|
-/// | *O*(1)~ | *O*(log(*n*)) | *O*(1)             |
+/// | [push]  | [pop]         | [peek]/[peek\_mut] | [into_sorted_vec] |
+/// |---------|---------------|--------------------|-------------------|
+/// | *O*(1)~ | *O*(log(*n*)) | *O*(1)             | *O*(*n*log(*n*))  |
 ///
 /// The value for `push` is an expected cost; the method documentation gives a
 /// more detailed analysis.
@@ -101,6 +134,7 @@ use std::vec::IntoIter;
 /// [pop]: WeakHeap::pop
 /// [peek]: WeakHeap::peek
 /// [peek\_mut]: WeakHeap::peek_mut
+/// [into_sorted_vec]: WeakHeap::into_sorted_vec
 pub struct WeakHeap<T> {
     data: Vec<T>,
     bit: Vec<bool>,
@@ -368,7 +402,7 @@ impl<T: Ord> WeakHeap<T> {
         }
     }
 
-    /// Equivalent to a sequential `push()` and `pop()` calls.
+    /// Effective equivalent to a sequential `push()` and `pop()` calls.
     ///
     /// # Examples
     ///
@@ -1146,7 +1180,9 @@ impl<T> IntoIterator for WeakHeap<T> {
     /// }
     /// ```
     fn into_iter(self) -> IntoIter<T> {
-        self.data.into_iter()
+        IntoIter {
+            iter: self.data.into_iter(),
+        }
     }
 }
 
@@ -1178,6 +1214,12 @@ impl<'a, T> IntoIterator for &'a WeakHeap<T> {
     }
 }
 
+/// An iterator over the elements of a `WeakHeap`.
+///
+/// This `struct` is created by [`WeakHeap::iter()`]. See its
+/// documentation for more.
+///
+/// [`iter`]: WeakHeap::iter
 #[derive(Clone)]
 pub struct Iter<'a, T: 'a> {
     iter: std::slice::Iter<'a, T>,
@@ -1217,6 +1259,51 @@ impl<'a, T> DoubleEndedIterator for Iter<'a, T> {
 
 impl<T> FusedIterator for Iter<'_, T> {}
 
+/// An owning iterator over the elements of a `WeakHeap`.
+///
+/// This `struct` is created by [`WeakHeap::into_iter()`]
+/// (provided by the [`IntoIterator`] trait). See its documentation for more.
+///
+/// [`into_iter`]: WeakHeap::into_iter
+/// [`IntoIterator`]: core::iter::IntoIterator
+
+#[derive(Clone)]
+pub struct IntoIter<T> {
+    iter: std::vec::IntoIter<T>,
+}
+
+impl<T: fmt::Debug> fmt::Debug for IntoIter<T> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_tuple("IntoIter")
+            .field(&self.iter.as_slice())
+            .finish()
+    }
+}
+
+impl<T> Iterator for IntoIter<T> {
+    type Item = T;
+
+    #[inline]
+    fn next(&mut self) -> Option<T> {
+        self.iter.next()
+    }
+}
+
+impl<T> DoubleEndedIterator for IntoIter<T> {
+    #[inline]
+    fn next_back(&mut self) -> Option<T> {
+        self.iter.next_back()
+    }
+}
+
+impl<T> FusedIterator for IntoIter<T> {}
+
+/// A draining iterator over the elements of a `WeakHeap`.
+///
+/// This `struct` is created by [`WeakHeap::drain()`]. See its
+/// documentation for more.
+///
+/// [`drain`]: WeakHeap::drain
 #[derive(Debug)]
 pub struct Drain<'a, T: 'a> {
     iter: std::vec::Drain<'a, T>,
